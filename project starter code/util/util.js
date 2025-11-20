@@ -9,21 +9,9 @@ import axios from "axios";
 //    inputURL: string - a publicly accessible url to an image file
 // RETURNS
 //    an absolute path to a filtered image locally saved file
- export async function filterImageFromURL(inputURL) {
+ export async function filterImageFromURL(imageBuffer) {
   
   return new Promise(async (resolve, reject) => {
-    try {
-          const { data: imageBuffer } = await axios({
-      method: 'get',
-      url: inputURL,
-      headers: {
-    // Be descriptive per Wikimedia policy for crawlers/bots:
-    "User-Agent": "my-app/1.0 (my-email@example.com)",
-    // Ask for images explicitly
-    "Accept": "image/*"
-  },
-      responseType: 'arraybuffer'
-    });
       console.log("Downloading image from URL:");
       const photo = await Jimp.read(imageBuffer);
       // console.log(photo)
@@ -36,9 +24,7 @@ import axios from "axios";
         .write(outpath, (img) => {
           resolve(outpath);
         });
-    } catch (error) {
-      reject(error);
-    }
+
   });
 }
 
@@ -52,18 +38,24 @@ import axios from "axios";
     fs.unlinkSync(file);
   }
 }
-export async function validURL(tbvalidatedURL) {
-    if ( typeof tbvalidatedURL !== 'string' ) {
+export async function validURL(inputURL) {
+    try {
+          const { data: imageBuffer } = await axios({
+      method: 'get',
+      url: inputURL,
+      headers: {
+    "User-Agent": "my-app/1.0 (my-email@example.com)",
+    "Accept": "image/*"
+  },
+  responseType: 'arraybuffer'
+});
+  console.log(imageBuffer);
+    if(!imageBuffer){
         return false;
+      }
+    return imageBuffer;
+    } catch (error) {
+      return false;
     }
-    console.log('You submitted the URL:'+tbvalidatedURL);
-    const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
-    console.log('Pattern Test:'+pattern.test(tbvalidatedURL));
     
-    return pattern.test(tbvalidatedURL);
-  }
+}

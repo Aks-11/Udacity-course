@@ -1,5 +1,5 @@
 import express from "express";
-import { filterImageFromURL, deleteLocalFiles } from "../util/util.js";
+import { filterImageFromURL, deleteLocalFiles, validURL } from "../util/util.js";
 import { HttpStatusCode } from "axios";
 
 const router = express.Router();
@@ -12,8 +12,13 @@ router.get("/filteredimage", async (req, res) => {
     if ( typeof image_url !== 'string' ) {
         return res.status(400).send({ message: "image_url must be a string" });
     }
+    const image_buffer = await validURL(image_url);
+    console.log(image_buffer);
+    if ( image_buffer=== false) {
+        return res.status(400).send({ message: "image_url must be a valid URL" });
+    }
     try {
-        const filteredImagePath = await filterImageFromURL(image_url);
+        const filteredImagePath = await filterImageFromURL(image_buffer);
         console.log(filteredImagePath);
         res.status(200).sendFile(filteredImagePath, {}, async (err) => {
             if (err) {
