@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util.js';
+import router from './routes/filter_image.js';
 
 
 
@@ -33,10 +34,11 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util.js';
   
   // Root Endpoint
   // Displays a simple message to the user
+  app.use(router);
   app.get( "/", async (req, res) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
+ 
 
   // Start the Server
   app.listen( port, () => {

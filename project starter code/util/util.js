@@ -1,6 +1,6 @@
 import fs from "fs";
 import Jimp from "jimp";
-
+import axios from "axios";
 
 // filterImageFromURL
 // helper function to download, filter, and save the filtered image locally
@@ -10,9 +10,23 @@ import Jimp from "jimp";
 // RETURNS
 //    an absolute path to a filtered image locally saved file
  export async function filterImageFromURL(inputURL) {
+  
   return new Promise(async (resolve, reject) => {
     try {
-      const photo = await Jimp.read(inputURL);
+          const { data: imageBuffer } = await axios({
+      method: 'get',
+      url: inputURL,
+      headers: {
+    // Be descriptive per Wikimedia policy for crawlers/bots:
+    "User-Agent": "my-app/1.0 (my-email@example.com)",
+    // Ask for images explicitly
+    "Accept": "image/*"
+  },
+      responseType: 'arraybuffer'
+    });
+      console.log("Downloading image from URL:");
+      const photo = await Jimp.read(imageBuffer);
+      // console.log(photo)
       const outpath =
         "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
       await photo
@@ -38,3 +52,18 @@ import Jimp from "jimp";
     fs.unlinkSync(file);
   }
 }
+export async function validURL(tbvalidatedURL) {
+    if ( typeof tbvalidatedURL !== 'string' ) {
+        return false;
+    }
+    console.log('You submitted the URL:'+tbvalidatedURL);
+    const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+    console.log('Pattern Test:'+pattern.test(tbvalidatedURL));
+    
+    return pattern.test(tbvalidatedURL);
+  }
